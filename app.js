@@ -1042,7 +1042,9 @@
             }
         } catch (e) {}
 
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === activeMode));
+        document.querySelectorAll('.sidebar-item').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === activeMode));
+        const loadTitles = { atis: 'ATIS', scratchpad: 'ScratchPad', diagrams: 'Diagrams', documents: 'Documents', checklists: 'Checklists' };
+        document.getElementById('nav-title').textContent = loadTitles[activeMode] || activeMode;
         document.getElementById('theme-group').style.display = activeMode === 'scratchpad' ? 'flex' : 'none';
         container.classList.toggle('light', activeMode === 'scratchpad' && scratchpadTheme === 'light');
 

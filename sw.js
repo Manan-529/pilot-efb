@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pilot-efb-v5';
+const CACHE_NAME = 'pilot-efb-v6';
 const ASSETS = [
     './',
     './index.html',

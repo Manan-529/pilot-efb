@@ -24,11 +24,18 @@ html, body {
     background: #060c14;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 2px;
     z-index: 110;
     border-bottom: 1px solid #2a3a4a;
     padding-top: env(safe-area-inset-top);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+#nav-bar::-webkit-scrollbar {
+    display: none;
 }
 
 .nav-btn {
@@ -43,6 +50,8 @@ html, body {
     cursor: pointer;
     letter-spacing: 0.5px;
     transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .nav-btn:hover {

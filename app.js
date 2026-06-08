@@ -29,6 +29,26 @@
 
     let currentAircraft = null;
 
+    // ===== Bundled Assets =====
+    let bundledAssets = null;
+
+    async function loadBundledAssets() {
+        if (bundledAssets) return bundledAssets;
+        try {
+            const resp = await fetch('./assets/manifest.json');
+            if (!resp.ok) throw new Error('No manifest');
+            bundledAssets = await resp.json();
+        } catch (e) {
+            bundledAssets = { diagrams: {}, documents: [], checklists: {} };
+        }
+        return bundledAssets;
+    }
+
+    function getBundledFileUrl(category, folder, filename) {
+        if (folder) return './assets/' + category + '/' + folder + '/' + filename;
+        return './assets/' + category + '/' + filename;
+    }
+
     // ===== IndexedDB =====
     function openDB() {
         return new Promise((resolve, reject) => {
@@ -166,26 +186,32 @@
         const backBtn = document.getElementById('btn-back-airports');
         const uploadBtn = document.getElementById('btn-upload-diagram');
         const addBtn = document.getElementById('btn-add-airport');
+        const assets = await loadBundledAssets();
 
         if (!currentAirport) {
-            // Show airport folders
             backBtn.style.display = 'none';
             uploadBtn.style.display = 'none';
             addBtn.style.display = 'flex';
             title.textContent = 'Airports';
 
-            const airports = JSON.parse(localStorage.getItem('pilot-efb-airports') || '[]');
+            const userAirports = JSON.parse(localStorage.getItem('pilot-efb-airports') || '[]');
+            const bundledAirports = Object.keys(assets.diagrams || {});
+            const allAirportCodes = [...new Set([...bundledAirports, ...userAirports])];
             const allDiagrams = await dbGetAll('diagrams');
             const counts = {};
             allDiagrams.forEach(d => { counts[d.airport] = (counts[d.airport] || 0) + 1; });
+            bundledAirports.forEach(code => {
+                counts[code] = (counts[code] || 0) + (assets.diagrams[code] || []).length;
+            });
 
             grid.innerHTML = '';
-            if (airports.length === 0) {
+            if (allAirportCodes.length === 0) {
                 grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#556677; padding:40px;">No airports added yet. Tap "Add Airport" to create a folder.</div>';
                 return;
             }
 
-            airports.sort().forEach(code => {
+            allAirportCodes.sort().forEach(code => {
+                const isBundled = bundledAirports.includes(code) && !userAirports.includes(code);
                 const folder = document.createElement('div');
                 folder.className = 'airport-folder';
 
@@ -197,37 +223,48 @@
                 countEl.className = 'airport-folder-count';
                 countEl.textContent = (counts[code] || 0) + ' diagram' + ((counts[code] || 0) !== 1 ? 's' : '');
 
-                const delBtn = document.createElement('button');
-                delBtn.className = 'airport-folder-delete';
-                delBtn.innerHTML = '&times;';
-                delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteAirport(code); });
-
                 folder.appendChild(nameEl);
                 folder.appendChild(countEl);
-                folder.appendChild(delBtn);
+
+                if (!isBundled) {
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'airport-folder-delete';
+                    delBtn.innerHTML = '&times;';
+                    delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteAirport(code); });
+                    folder.appendChild(delBtn);
+                }
+
                 folder.addEventListener('click', () => { currentAirport = code; renderDiagramsView(); });
                 grid.appendChild(folder);
             });
         } else {
-            // Show diagrams inside airport
             backBtn.style.display = 'flex';
             uploadBtn.style.display = 'flex';
             addBtn.style.display = 'none';
             title.textContent = currentAirport;
 
             const all = await dbGetAll('diagrams');
-            const diagrams = all.filter(d => d.airport === currentAirport).sort((a, b) => b.addedAt - a.addedAt);
+            const userDiagrams = all.filter(d => d.airport === currentAirport).sort((a, b) => b.addedAt - a.addedAt);
+            const bundledFiles = (assets.diagrams[currentAirport] || []).map(f => ({
+                name: f,
+                url: getBundledFileUrl('diagrams', currentAirport, f),
+                type: f.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image',
+                bundled: true
+            }));
 
             grid.innerHTML = '';
-            if (diagrams.length === 0) {
+            const allItems = [...bundledFiles, ...userDiagrams];
+            if (allItems.length === 0) {
                 grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#556677; padding:40px;">No diagrams yet. Tap Upload to add.</div>';
                 return;
             }
 
-            diagrams.forEach(d => {
+            allItems.forEach(d => {
                 const card = document.createElement('div');
                 card.className = 'file-card';
-                const isPDF = d.type === 'application/pdf' || d.name.toLowerCase().endsWith('.pdf');
+                const isPDF = d.bundled
+                    ? d.type === 'application/pdf'
+                    : (d.type === 'application/pdf' || d.name.toLowerCase().endsWith('.pdf'));
 
                 if (isPDF) {
                     const thumb = document.createElement('div');
@@ -236,29 +273,32 @@
                     card.appendChild(thumb);
                 } else {
                     const img = document.createElement('img');
-                    img.src = d.dataUrl;
+                    img.src = d.bundled ? d.url : d.dataUrl;
                     img.alt = d.name;
                     card.appendChild(img);
                 }
 
                 const label = document.createElement('div');
                 label.className = 'file-card-label';
-                label.textContent = d.name;
-
-                const delBtn = document.createElement('button');
-                delBtn.className = 'file-card-delete';
-                delBtn.innerHTML = '&times;';
-                delBtn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    if (confirm('Delete "' + d.name + '"?')) {
-                        await dbDelete('diagrams', d.id);
-                        renderDiagramsView();
-                    }
-                });
+                label.textContent = d.name + (d.bundled ? ' \u{1F4CC}' : '');
 
                 card.appendChild(label);
-                card.appendChild(delBtn);
-                card.addEventListener('click', () => openViewer(d.dataUrl, d.name, isPDF));
+
+                if (!d.bundled) {
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'file-card-delete';
+                    delBtn.innerHTML = '&times;';
+                    delBtn.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        if (confirm('Delete "' + d.name + '"?')) {
+                            await dbDelete('diagrams', d.id);
+                            renderDiagramsView();
+                        }
+                    });
+                    card.appendChild(delBtn);
+                }
+
+                card.addEventListener('click', () => openViewer(d.bundled ? d.url : d.dataUrl, d.name, isPDF));
                 grid.appendChild(card);
             });
         }
@@ -282,19 +322,31 @@
 
     async function renderDocsGrid() {
         const grid = document.getElementById('documents-grid');
+        const assets = await loadBundledAssets();
         const docs = await dbGetAll('documents');
         docs.sort((a, b) => b.addedAt - a.addedAt);
 
+        const bundledDocs = (assets.documents || []).map(f => ({
+            name: f,
+            url: getBundledFileUrl('documents', null, f),
+            type: f.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image',
+            bundled: true
+        }));
+
+        const allDocs = [...bundledDocs, ...docs];
+
         grid.innerHTML = '';
-        if (docs.length === 0) {
+        if (allDocs.length === 0) {
             grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#556677; padding:40px;">No documents uploaded yet. Tap Upload to add PDFs or images.</div>';
             return;
         }
 
-        docs.forEach(d => {
+        allDocs.forEach(d => {
             const card = document.createElement('div');
             card.className = 'file-card';
-            const isPDF = d.type === 'application/pdf' || d.name.toLowerCase().endsWith('.pdf');
+            const isPDF = d.bundled
+                ? d.type === 'application/pdf'
+                : (d.type === 'application/pdf' || d.name.toLowerCase().endsWith('.pdf'));
 
             if (isPDF) {
                 const thumb = document.createElement('div');
@@ -303,29 +355,32 @@
                 card.appendChild(thumb);
             } else {
                 const img = document.createElement('img');
-                img.src = d.dataUrl;
+                img.src = d.bundled ? d.url : d.dataUrl;
                 img.alt = d.name;
                 card.appendChild(img);
             }
 
             const label = document.createElement('div');
             label.className = 'file-card-label';
-            label.textContent = d.name;
-
-            const delBtn = document.createElement('button');
-            delBtn.className = 'file-card-delete';
-            delBtn.innerHTML = '&times;';
-            delBtn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                if (confirm('Delete "' + d.name + '"?')) {
-                    await dbDelete('documents', d.id);
-                    renderDocsGrid();
-                }
-            });
+            label.textContent = d.name + (d.bundled ? ' \u{1F4CC}' : '');
 
             card.appendChild(label);
-            card.appendChild(delBtn);
-            card.addEventListener('click', () => openViewer(d.dataUrl, d.name, isPDF));
+
+            if (!d.bundled) {
+                const delBtn = document.createElement('button');
+                delBtn.className = 'file-card-delete';
+                delBtn.innerHTML = '&times;';
+                delBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (confirm('Delete "' + d.name + '"?')) {
+                        await dbDelete('documents', d.id);
+                        renderDocsGrid();
+                    }
+                });
+                card.appendChild(delBtn);
+            }
+
+            card.addEventListener('click', () => openViewer(d.bundled ? d.url : d.dataUrl, d.name, isPDF));
             grid.appendChild(card);
         });
     }
@@ -378,6 +433,7 @@
         const backBtn = document.getElementById('btn-back-aircraft');
         const uploadBtn = document.getElementById('btn-upload-checklist');
         const addBtn = document.getElementById('btn-add-aircraft');
+        const assets = await loadBundledAssets();
 
         if (!currentAircraft) {
             backBtn.style.display = 'none';
@@ -385,18 +441,24 @@
             addBtn.style.display = 'flex';
             title.textContent = 'Aircraft';
 
-            const aircraft = JSON.parse(localStorage.getItem('pilot-efb-aircraft') || '[]');
+            const userAircraft = JSON.parse(localStorage.getItem('pilot-efb-aircraft') || '[]');
+            const bundledAircraft = Object.keys(assets.checklists || {});
+            const allAircraftCodes = [...new Set([...bundledAircraft, ...userAircraft])];
             const allChecklists = await dbGetAll('checklists');
             const counts = {};
             allChecklists.forEach(c => { counts[c.aircraft] = (counts[c.aircraft] || 0) + 1; });
+            bundledAircraft.forEach(code => {
+                counts[code] = (counts[code] || 0) + (assets.checklists[code] || []).length;
+            });
 
             grid.innerHTML = '';
-            if (aircraft.length === 0) {
+            if (allAircraftCodes.length === 0) {
                 grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#556677; padding:40px;">No aircraft added yet. Tap "Add Aircraft" to create a folder.</div>';
                 return;
             }
 
-            aircraft.sort().forEach(code => {
+            allAircraftCodes.sort().forEach(code => {
+                const isBundled = bundledAircraft.includes(code) && !userAircraft.includes(code);
                 const folder = document.createElement('div');
                 folder.className = 'airport-folder';
 
@@ -408,14 +470,17 @@
                 countEl.className = 'airport-folder-count';
                 countEl.textContent = (counts[code] || 0) + ' checklist' + ((counts[code] || 0) !== 1 ? 's' : '');
 
-                const delBtn = document.createElement('button');
-                delBtn.className = 'airport-folder-delete';
-                delBtn.innerHTML = '&times;';
-                delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteAircraft(code); });
-
                 folder.appendChild(nameEl);
                 folder.appendChild(countEl);
-                folder.appendChild(delBtn);
+
+                if (!isBundled) {
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'airport-folder-delete';
+                    delBtn.innerHTML = '&times;';
+                    delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteAircraft(code); });
+                    folder.appendChild(delBtn);
+                }
+
                 folder.addEventListener('click', () => { currentAircraft = code; renderChecklistsView(); });
                 grid.appendChild(folder);
             });
@@ -426,18 +491,27 @@
             title.textContent = currentAircraft;
 
             const all = await dbGetAll('checklists');
-            const items = all.filter(c => c.aircraft === currentAircraft).sort((a, b) => b.addedAt - a.addedAt);
+            const userItems = all.filter(c => c.aircraft === currentAircraft).sort((a, b) => b.addedAt - a.addedAt);
+            const bundledFiles = (assets.checklists[currentAircraft] || []).map(f => ({
+                name: f,
+                url: getBundledFileUrl('checklists', currentAircraft, f),
+                type: f.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image',
+                bundled: true
+            }));
 
+            const allItems = [...bundledFiles, ...userItems];
             grid.innerHTML = '';
-            if (items.length === 0) {
+            if (allItems.length === 0) {
                 grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#556677; padding:40px;">No checklists yet. Tap Upload to add.</div>';
                 return;
             }
 
-            items.forEach(d => {
+            allItems.forEach(d => {
                 const card = document.createElement('div');
                 card.className = 'file-card';
-                const isPDF = d.type === 'application/pdf' || d.name.toLowerCase().endsWith('.pdf');
+                const isPDF = d.bundled
+                    ? d.type === 'application/pdf'
+                    : (d.type === 'application/pdf' || d.name.toLowerCase().endsWith('.pdf'));
 
                 if (isPDF) {
                     const thumb = document.createElement('div');
@@ -446,29 +520,32 @@
                     card.appendChild(thumb);
                 } else {
                     const img = document.createElement('img');
-                    img.src = d.dataUrl;
+                    img.src = d.bundled ? d.url : d.dataUrl;
                     img.alt = d.name;
                     card.appendChild(img);
                 }
 
                 const label = document.createElement('div');
                 label.className = 'file-card-label';
-                label.textContent = d.name;
-
-                const delBtn = document.createElement('button');
-                delBtn.className = 'file-card-delete';
-                delBtn.innerHTML = '&times;';
-                delBtn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    if (confirm('Delete "' + d.name + '"?')) {
-                        await dbDelete('checklists', d.id);
-                        renderChecklistsView();
-                    }
-                });
+                label.textContent = d.name + (d.bundled ? ' \u{1F4CC}' : '');
 
                 card.appendChild(label);
-                card.appendChild(delBtn);
-                card.addEventListener('click', () => openViewer(d.dataUrl, d.name, isPDF));
+
+                if (!d.bundled) {
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'file-card-delete';
+                    delBtn.innerHTML = '&times;';
+                    delBtn.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        if (confirm('Delete "' + d.name + '"?')) {
+                            await dbDelete('checklists', d.id);
+                            renderChecklistsView();
+                        }
+                    });
+                    card.appendChild(delBtn);
+                }
+
+                card.addEventListener('click', () => openViewer(d.bundled ? d.url : d.dataUrl, d.name, isPDF));
                 grid.appendChild(card);
             });
         }

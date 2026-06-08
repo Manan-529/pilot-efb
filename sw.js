@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pilot-efb-v1';
+const CACHE_NAME = 'pilot-efb-v2';
 const ASSETS = [
     './',
     './index.html',
@@ -7,7 +7,8 @@ const ASSETS = [
     './manifest.json',
     './icon-192.png',
     './icon-512.png',
-    './apple-touch-icon.png'
+    './apple-touch-icon.png',
+    './assets/manifest.json'
 ];
 
 self.addEventListener('install', (e) => {

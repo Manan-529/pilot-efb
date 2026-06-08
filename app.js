@@ -567,6 +567,7 @@
             content.style.touchAction = '';
             content.style.overflow = 'auto';
             content.style.webkitOverflowScrolling = 'touch';
+            document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1');
             const obj = document.createElement('object');
             obj.data = dataUrl;
             obj.type = 'application/pdf';
@@ -620,6 +621,7 @@
         content.innerHTML = '';
         viewerPointers.clear();
         viewerState = { scale: 1, x: 0, y: 0, img: null };
+        document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
     }
 
     function applyViewerTransform() {

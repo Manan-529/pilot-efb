@@ -1,6 +1,6 @@
 {
-    "name": "Pilot EFB",
-    "short_name": "EFB",
+    "name": "viMan",
+    "short_name": "viMan",
     "description": "Electronic Flight Bag - ATIS, ScratchPad, Diagrams, Documents, Checklists",
     "start_url": "./index.html",
     "display": "standalone",

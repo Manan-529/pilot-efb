@@ -928,6 +928,8 @@
         activeMode = mode;
 
         document.querySelectorAll('.sidebar-item').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+        const titles = { atis: 'ATIS', scratchpad: 'ScratchPad', diagrams: 'Diagrams', documents: 'Documents', checklists: 'Checklists' };
+        document.getElementById('nav-title').textContent = titles[mode] || mode;
 
         const isCanvas = mode === 'atis' || mode === 'scratchpad';
         document.getElementById('toolbar').style.display = isCanvas ? 'flex' : 'none';

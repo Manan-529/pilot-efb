@@ -4,7 +4,11 @@
         "KBOS": ["BOS_APD_AIRPORT DIAGRAM.PDF"],
         "KBED": ["BED_APD_AIRPORT DIAGRAM.PDF"]
     },
-    "documents": [],
+    "documents": [
+        "Departure Briefing.pdf",
+        "ECAC Checklist In-Flight Guide 12_March 2026.pdf",
+        "Passenger Safety Briefing.pdf"
+    ],
     "checklists": {
         "PA28-161-Warrior-III": ["PA28-161-Piper-Warrior-III-Checklist_22-September-2025.pdf"],
         "C172N": ["C172N-Cessna-Skyhawk-Checklist_22-September-2025.pdf"]

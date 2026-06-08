@@ -565,15 +565,26 @@
 
         if (isPDF) {
             content.style.touchAction = '';
-            const iframe = document.createElement('iframe');
-            iframe.src = dataUrl;
-            iframe.style.cssText = 'width:100%; height:100%; border:none; background:#fff;';
-            content.appendChild(iframe);
+            content.style.overflow = 'auto';
+            content.style.webkitOverflowScrolling = 'touch';
+            const obj = document.createElement('object');
+            obj.data = dataUrl;
+            obj.type = 'application/pdf';
+            obj.style.cssText = 'width:100%; height:100%; border:none;';
+            const fallbackLink = document.createElement('a');
+            fallbackLink.href = dataUrl;
+            fallbackLink.target = '_blank';
+            fallbackLink.style.cssText = 'color:#4db8ff; font-size:16px; display:flex; align-items:center; justify-content:center; width:100%; height:100%;';
+            fallbackLink.textContent = 'Tap to open PDF: ' + name;
+            obj.appendChild(fallbackLink);
+            content.appendChild(obj);
             viewer.style.display = 'flex';
             return;
         }
 
         content.style.touchAction = 'none';
+        content.style.overflow = 'hidden';
+        content.style.webkitOverflowScrolling = '';
         const img = document.createElement('img');
         img.src = dataUrl;
         img.alt = name;

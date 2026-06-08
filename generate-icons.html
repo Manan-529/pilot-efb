@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate Icons</title></head>
+<body>
+<p>Right-click each image and "Save Image As" with the filename shown:</p>
+<div id="icons"></div>
+<script>
+function createIcon(size, filename) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#0d1520';
+    ctx.fillRect(0, 0, size, size);
+
+    // Rounded rect border
+    const m = size * 0.05;
+    ctx.strokeStyle = '#2a3a4a';
+    ctx.lineWidth = size * 0.02;
+    ctx.beginPath();
+    ctx.roundRect(m, m, size - m*2, size - m*2, size * 0.15);
+    ctx.stroke();
+
+    // Airplane icon (simple)
+    const cx = size / 2;
+    const cy = size / 2 - size * 0.05;
+    const s = size * 0.3;
+
+    ctx.fillStyle = '#4db8ff';
+    ctx.beginPath();
+    // Fuselage
+    ctx.ellipse(cx, cy, s * 0.12, s * 0.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Wings
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - s * 0.05);
+    ctx.lineTo(cx - s * 0.7, cy + s * 0.15);
+    ctx.lineTo(cx - s * 0.65, cy + s * 0.25);
+    ctx.lineTo(cx, cy + s * 0.1);
+    ctx.lineTo(cx + s * 0.65, cy + s * 0.25);
+    ctx.lineTo(cx + s * 0.7, cy + s * 0.15);
+    ctx.closePath();
+    ctx.fill();
+
+    // Tail
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + s * 0.4);
+    ctx.lineTo(cx - s * 0.3, cy + s * 0.6);
+    ctx.lineTo(cx - s * 0.25, cy + s * 0.65);
+    ctx.lineTo(cx, cy + s * 0.5);
+    ctx.lineTo(cx + s * 0.25, cy + s * 0.65);
+    ctx.lineTo(cx + s * 0.3, cy + s * 0.6);
+    ctx.closePath();
+    ctx.fill();
+
+    // EFB text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold ' + (size * 0.12) + 'px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('EFB', cx, size * 0.88);
+
+    const div = document.createElement('div');
+    div.style.marginBottom = '20px';
+    const img = document.createElement('img');
+    img.src = canvas.toDataURL('image/png');
+    img.style.width = '100px';
+    img.style.height = '100px';
+    img.style.border = '1px solid #ccc';
+    const label = document.createElement('p');
+    label.textContent = filename + ' (' + size + 'x' + size + ')';
+
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = filename;
+    link.textContent = 'Download ' + filename;
+    link.style.marginLeft = '10px';
+
+    div.appendChild(img);
+    div.appendChild(link);
+    div.appendChild(label);
+    document.getElementById('icons').appendChild(div);
+}
+
+createIcon(180, 'apple-touch-icon.png');
+createIcon(192, 'icon-192.png');
+createIcon(512, 'icon-512.png');
+</script>
+</body>
+</html>

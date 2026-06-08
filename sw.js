@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pilot-efb-v7';
+const CACHE_NAME = 'pilot-efb-v8';
 const ASSETS = [
     './',
     './index.html',
@@ -28,13 +28,11 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-    if (e.request.url.includes('/assets/')) {
-        e.respondWith(
-            fetch(e.request).catch(() => caches.match(e.request))
-        );
-        return;
-    }
     e.respondWith(
-        caches.match(e.request).then(cached => cached || fetch(e.request))
+        fetch(e.request).then(resp => {
+            const clone = resp.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+            return resp;
+        }).catch(() => caches.match(e.request))
     );
 });

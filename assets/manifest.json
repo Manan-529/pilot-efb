@@ -1,12 +1,12 @@
 {
     "diagrams": {
-        "KOWD": [],
-        "KBOS": [],
-        "KBED": []
+        "KOWD": ["OWD_APD_AIRPORT DIAGRAM.PDF"],
+        "KBOS": ["BOS_APD_AIRPORT DIAGRAM.PDF"],
+        "KBED": ["BED_APD_AIRPORT DIAGRAM.PDF"]
     },
     "documents": [],
     "checklists": {
-        "PA28-161-Warrior-III": [],
-        "C172N": []
+        "PA28-161-Warrior-III": ["PA28-161-Piper-Warrior-III-Checklist_22-September-2025.pdf"],
+        "C172N": ["C172N-Cessna-Skyhawk-Checklist_22-September-2025.pdf"]
     }
 }

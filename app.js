@@ -927,7 +927,7 @@
         if (activeMode === 'atis' || activeMode === 'scratchpad') saveCurrentPage();
         activeMode = mode;
 
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+        document.querySelectorAll('.sidebar-item').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
 
         const isCanvas = mode === 'atis' || mode === 'scratchpad';
         document.getElementById('toolbar').style.display = isCanvas ? 'flex' : 'none';
@@ -1093,7 +1093,23 @@
         if (e.target.files.length) { uploadChecklist(e.target.files); e.target.value = ''; }
     });
 
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => switchMode(btn.dataset.mode)));
+    // Sidebar menu
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    function toggleSidebar() {
+        sidebar.classList.toggle('open');
+        sidebarOverlay.classList.toggle('open');
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('open');
+    }
+    document.getElementById('btn-menu').addEventListener('click', toggleSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+    document.querySelectorAll('.sidebar-item').forEach(btn => btn.addEventListener('click', () => {
+        switchMode(btn.dataset.mode);
+        closeSidebar();
+    }));
     window.addEventListener('resize', () => { if (activeMode === 'atis' || activeMode === 'scratchpad') resizeCanvases(); });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') save(); });
     window.addEventListener('beforeunload', save);

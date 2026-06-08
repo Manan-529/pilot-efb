@@ -20,53 +20,114 @@ html, body {
     top: 0;
     left: 0;
     right: 0;
-    height: 40px;
+    height: 44px;
     background: #060c14;
     display: flex;
     align-items: center;
-    gap: 2px;
     z-index: 110;
     border-bottom: 1px solid #2a3a4a;
     padding-top: env(safe-area-inset-top);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
 }
 
-#nav-bar::-webkit-scrollbar {
-    display: none;
-}
-
-.nav-btn {
-    height: 32px;
-    padding: 0 20px;
+.menu-btn {
+    width: 40px;
+    height: 40px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     background: transparent;
-    color: #667788;
-    font-size: 13px;
+    color: #8899aa;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+
+.menu-btn:hover {
+    background: #1e3348;
+    color: #ffffff;
+}
+
+.nav-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+#sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 105;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease-out;
+}
+
+#sidebar-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#sidebar {
+    position: fixed;
+    top: calc(44px + env(safe-area-inset-top));
+    left: 0;
+    bottom: 0;
+    width: 220px;
+    background: #060c14;
+    border-right: 1px solid #2a3a4a;
+    z-index: 108;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease-out;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 0;
+}
+
+#sidebar.open {
+    transform: translateX(0);
+}
+
+.sidebar-item {
+    height: 48px;
+    border: none;
+    background: transparent;
+    color: #8899aa;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    letter-spacing: 0.5px;
-    transition: background 0.2s ease-out, color 0.2s ease-out;
-    flex-shrink: 0;
-    white-space: nowrap;
+    text-align: left;
+    padding: 0 20px;
+    border-left: 3px solid transparent;
+    transition: background 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
+    display: flex;
+    align-items: center;
 }
 
-.nav-btn:hover {
-    color: #aabbcc;
+.sidebar-item:hover {
+    background: #1a2a3a;
+    color: #ffffff;
 }
 
-.nav-btn.active {
+.sidebar-item.active {
     background: #1a3a5a;
     color: #4db8ff;
-    box-shadow: 0 0 0 1px rgba(77,184,255,0.3);
+    border-left-color: #4db8ff;
 }
 
 #toolbar {
     position: fixed;
-    top: calc(40px + env(safe-area-inset-top));
+    top: calc(44px + env(safe-area-inset-top));
     left: 0;
     right: 0;
     height: 48px;
@@ -126,7 +187,7 @@ html, body {
 
 #canvas-container {
     position: fixed;
-    top: calc(88px + env(safe-area-inset-top));
+    top: calc(92px + env(safe-area-inset-top));
     left: 0;
     right: 0;
     bottom: 44px;
@@ -237,7 +298,7 @@ html, body {
 #documents-container,
 #checklists-container {
     position: fixed;
-    top: calc(40px + env(safe-area-inset-top));
+    top: calc(44px + env(safe-area-inset-top));
     left: 0;
     right: 0;
     bottom: 0;
@@ -438,17 +499,28 @@ html, body {
 @media (min-width: 768px) {
     #nav-bar {
         height: 48px;
-        gap: 6px;
-        justify-content: center;
         padding-left: 16px;
         padding-right: 16px;
     }
 
-    .nav-btn {
-        height: 38px;
-        padding: 0 28px;
-        font-size: 14px;
-        border-radius: 6px;
+    .menu-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .nav-title {
+        font-size: 18px;
+    }
+
+    #sidebar {
+        top: calc(48px + env(safe-area-inset-top));
+        width: 240px;
+    }
+
+    .sidebar-item {
+        height: 52px;
+        font-size: 15px;
+        padding: 0 24px;
     }
 
     #toolbar {

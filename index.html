@@ -13,11 +13,23 @@
 </head>
 <body>
     <div id="nav-bar">
-        <button class="nav-btn active" data-mode="atis">ATIS</button>
-        <button class="nav-btn" data-mode="scratchpad">ScratchPad</button>
-        <button class="nav-btn" data-mode="diagrams">Diagrams</button>
-        <button class="nav-btn" data-mode="documents">Documents</button>
-        <button class="nav-btn" data-mode="checklists">Checklists</button>
+        <button id="btn-menu" class="menu-btn" aria-label="Menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+        </button>
+        <span class="nav-title">viMan</span>
+    </div>
+
+    <div id="sidebar-overlay"></div>
+    <div id="sidebar">
+        <button class="sidebar-item active" data-mode="atis">ATIS</button>
+        <button class="sidebar-item" data-mode="scratchpad">ScratchPad</button>
+        <button class="sidebar-item" data-mode="diagrams">Diagrams</button>
+        <button class="sidebar-item" data-mode="documents">Documents</button>
+        <button class="sidebar-item" data-mode="checklists">Checklists</button>
     </div>
 
     <div id="toolbar">

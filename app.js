@@ -35,7 +35,7 @@
     async function loadBundledAssets() {
         if (bundledAssets) return bundledAssets;
         try {
-            const resp = await fetch('./assets/manifest.json');
+            const resp = await fetch('./assets/manifest.json', { cache: 'no-store' });
             if (!resp.ok) throw new Error('No manifest');
             bundledAssets = await resp.json();
         } catch (e) {

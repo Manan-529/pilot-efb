@@ -946,7 +946,7 @@
         if (mode === 'checklists') { currentAircraft = null; renderChecklistsView(); return; }
 
         const state = getCurrentState();
-        if (!state.pages.length) { createPage(); return; }
+        if (!state.pages.length) { createPage(); resizeCanvases(); return; }
         const page = state.pages.find(p => p.id === state.activePageId) || state.pages[0];
         state.activePageId = page.id;
         strokes = JSON.parse(JSON.stringify(page.strokes)); redoStack = [];
